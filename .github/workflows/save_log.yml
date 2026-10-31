@@ -1,0 +1,23 @@
+name: Save Quiz Log
+on:
+  repository_dispatch:
+    types: [submit-log]
+jobs:
+  append-log:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Append data to csv
+        run: |
+          # 受験者のデータをCSVの1行に整形して追記
+          echo "${{ github.event.client_payload.timestamp }},${{ github.event.client_payload.company }},${{ github.event.client_payload.name }},${{ github.event.client_payload.score }},${{ github.event.client_payload.results }}" >> logs.csv
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add logs.csv
+          git commit -m "Add log for ${{ github.event.client_payload.name }}"
+          git push origin main
